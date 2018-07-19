@@ -1,2 +1,3 @@
 # Kaggle-problems
-My answers to kaggle problems on machine learning
+Solution for Titanic problem on kaggle using deep learning ( keras ).
+It got a score of 0.78468
