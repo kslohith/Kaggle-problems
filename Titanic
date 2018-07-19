@@ -1,0 +1,99 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Jun 23 21:08:31 2018
+
+@author: K.S.LOHITH
+"""
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+datasets = pd.read_csv('train.csv')
+dataset = pd.read_csv('test.csv')
+dataset = dataset.drop('Name' , 1) 
+dataset = dataset.drop('Ticket' , 1) 
+dataset = dataset.drop('Cabin' , 1) 
+datasets = datasets.drop('Name' , 1) 
+datasets = datasets.drop('Ticket' , 1) 
+datasets = datasets.drop('Cabin' , 1) 
+datasets = datasets.drop('PassengerId' , 1) 
+#drop NaN values from datasets
+datasets = datasets.dropna()
+y = datasets.iloc[:,0:1].values
+x = datasets.iloc[:,1:].values
+
+#fill missing data
+x_testreal = dataset.iloc[:,1:].values
+
+
+from sklearn.preprocessing import Imputer
+imputer = Imputer( missing_values = "NaN" , strategy = "mean"  ,axis = 0 )
+x[:,2:3] = imputer.fit_transform(x[:,2:3])
+x[:,5:6] = imputer.fit_transform(x[:,5:6])
+
+from sklearn.preprocessing import Imputer
+imputer = Imputer( missing_values = "NaN" , strategy = "mean"  ,axis = 0 )
+x_testreal[:,2:3] = imputer.fit_transform(x_testreal[:,2:3])
+x_testreal[:,5:6] = imputer.fit_transform(x_testreal[:,5:6])
+
+
+#encoding of caregorical variables
+from sklearn.preprocessing import LabelEncoder , OneHotEncoder
+labelencoder = LabelEncoder()
+x[:,1] = labelencoder.fit_transform(x[:,1])
+labelencoder_x = LabelEncoder()
+x[:,6] = labelencoder_x.fit_transform(x[:,6])
+onehotencoder = OneHotEncoder( categorical_features = [6] )
+x = onehotencoder.fit_transform(x).toarray()
+labelencoder_y = LabelEncoder()
+x_testreal[:,1] = labelencoder_y.fit_transform(x_testreal[:,1])
+labelencoder_z = LabelEncoder()
+x_testreal[:,6] = labelencoder_z.fit_transform(x_testreal[:,6])
+onehotencoder_x = OneHotEncoder( categorical_features = [6] )
+x_testreal = onehotencoder_x.fit_transform(x_testreal).toarray()
+x_testreal = x_testreal[:,1:]
+
+
+#avoiding dummy variable trap
+x = x[:,1:]
+
+#feature scaling
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+x = sc.fit_transform(x)
+sc_test = StandardScaler()
+x_testreal = sc_test.fit_transform(x_testreal)
+
+#build the ann
+import keras
+from keras.models import Sequential
+from keras.layers import Dense
+
+classifier = Sequential()
+
+classifier.add(Dense(output_dim = 5, init = 'uniform', activation = 'relu', input_dim = 8))
+
+classifier.add(Dense(output_dim = 1, init = 'uniform', activation = 'sigmoid'))
+
+classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
+
+#fit the model
+classifier.fit(x,y,batch_size = 10 , epochs = 50 )
+
+#predict
+y_pred = classifier.predict(x_testreal)
+
+for i in range(len(y_pred)):
+    if(y_pred[i] >= 0.56 ):
+        y_pred[i] = 1
+    else:
+        y_pred[i] = 0
+        
+
+
+
+
+
+
+
